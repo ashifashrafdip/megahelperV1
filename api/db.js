@@ -1,38 +1,88 @@
-// Neon PostgreSQL Connection & Local Fallback Handler
-try { require('dotenv').config(); } catch (e) {}
-const { neon } = require('@neondatabase/serverless');
-const fs = require('fs');
 const path = require('path');
+const fs = require('fs');
+try { require('dotenv').config({ path: path.join(__dirname, '..', '.env') }); } catch (e) {}
 
-// Default Neon PostgreSQL connection string provided by user
-const NEON_DEFAULT_URL = 'postgresql://neondb_owner:npg_dWzEjFRV2O7g@ep-quiet-salad-b8cpqebt-pooler.c-14.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require';
+let mysql = null;
+try {
+  mysql = require('mysql2/promise');
+} catch (e) {
+  // mysql2 optional if not installed in an environment
+}
 
-// Read database URL from environment with user's Neon connection fallback
-const getDbUrl = () => {
-  return process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.NEON_DATABASE_URL || NEON_DEFAULT_URL;
+let neonModule = null;
+try {
+  neonModule = require('@neondatabase/serverless').neon;
+} catch (e) {
+  // neon optional
+}
+
+// 1. MySQL / MariaDB Config (Primary for cPanel hosting)
+const MYSQL_CONFIG = {
+  host: process.env.MYSQL_HOST || 'localhost',
+  user: process.env.MYSQL_USER || 'ashifash_mega',
+  password: process.env.MYSQL_PASSWORD || 'MegaApp2026SecurePass',
+  database: process.env.MYSQL_DATABASE || 'ashifash_mega',
+  port: Number(process.env.MYSQL_PORT) || 3306,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  connectTimeout: 5000
 };
 
-// Local JSON storage fallback when DATABASE_URL is not yet configured
-const LOCAL_STORAGE_DIR = path.join(process.cwd(), 'data');
-const LOCAL_STORAGE_FILE = path.join(LOCAL_STORAGE_DIR, 'saved_profiles.json');
+let mysqlPool = null;
+let isMysqlTableInit = false;
 
-const ensureLocalStorage = () => {
-  try {
-    if (!fs.existsSync(LOCAL_STORAGE_DIR)) {
-      fs.mkdirSync(LOCAL_STORAGE_DIR, { recursive: true });
+function getMysqlPool() {
+  if (!mysql) return null;
+  if (!mysqlPool) {
+    try {
+      mysqlPool = mysql.createPool(MYSQL_CONFIG);
+    } catch (e) {
+      console.warn('MySQL pool create error:', e.message);
+      mysqlPool = null;
     }
-    if (!fs.existsSync(LOCAL_STORAGE_FILE)) {
-      fs.writeFileSync(LOCAL_STORAGE_FILE, JSON.stringify([], null, 2), 'utf-8');
-    }
-  } catch (e) {
-    console.error('Local storage init error:', e.message);
   }
+  return mysqlPool;
+}
+
+async function initMysqlTable(pool) {
+  if (isMysqlTableInit) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS saved_profiles (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      profile_name VARCHAR(150),
+      phone_number VARCHAR(50) NOT NULL,
+      phone_formatted VARCHAR(50),
+      carrier VARCHAR(100),
+      line_type VARCHAR(50),
+      region VARCHAR(100),
+      local_format VARCHAR(50),
+      timezone VARCHAR(100),
+      country VARCHAR(100),
+      ip_address VARCHAR(100),
+      location VARCHAR(150),
+      fraud_score INT,
+      trust_score INT,
+      connection_type VARCHAR(100),
+      threat_flags VARCHAR(200),
+      dob VARCHAR(50),
+      age INT,
+      headline TEXT,
+      post_bio TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  isMysqlTableInit = true;
+}
+
+// 2. Neon PostgreSQL Config
+const getDbUrl = () => {
+  return process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.NEON_DATABASE_URL || '';
 };
 
-// Initialize Table in Neon PostgreSQL
-let isTableInitialized = false;
+let isNeonTableInit = false;
 async function initNeonTable(sql) {
-  if (isTableInitialized) return;
+  if (isNeonTableInit) return;
   try {
     await sql`
       CREATE TABLE IF NOT EXISTS saved_profiles (
@@ -59,40 +109,70 @@ async function initNeonTable(sql) {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `;
-    await sql`ALTER TABLE saved_profiles ADD COLUMN IF NOT EXISTS profile_name VARCHAR(150);`;
-    isTableInitialized = true;
+    isNeonTableInit = true;
   } catch (err) {
-    console.error('Error creating/altering Neon table:', err.message);
+    console.error('Error creating Neon table:', err.message);
   }
 }
 
-// Get Database Client or null
-function getSql() {
-  const dbUrl = getDbUrl();
-  if (dbUrl) {
+function getNeonSql() {
+  const url = getDbUrl();
+  if (url && neonModule) {
     try {
-      return neon(dbUrl);
+      return neonModule(url);
     } catch (e) {
-      console.error('Neon connection error:', e.message);
+      console.warn('Neon connection error:', e.message);
     }
   }
   return null;
 }
 
-// 1. Fetch all profiles
+// 3. Local JSON fallback
+const LOCAL_STORAGE_DIR = path.join(process.cwd(), 'data');
+const LOCAL_STORAGE_FILE = path.join(LOCAL_STORAGE_DIR, 'saved_profiles.json');
+
+const ensureLocalStorage = () => {
+  try {
+    if (!fs.existsSync(LOCAL_STORAGE_DIR)) {
+      fs.mkdirSync(LOCAL_STORAGE_DIR, { recursive: true });
+    }
+    if (!fs.existsSync(LOCAL_STORAGE_FILE)) {
+      fs.writeFileSync(LOCAL_STORAGE_FILE, JSON.stringify([], null, 2), 'utf-8');
+    }
+  } catch (e) {
+    console.error('Local storage init error:', e.message);
+  }
+};
+
+// --- CRUD Operations ---
+
+// 1. Fetch All Profiles
 async function getAllProfiles() {
-  const sql = getSql();
-  if (sql) {
+  // A. Try MySQL first (cPanel best database)
+  const pool = getMysqlPool();
+  if (pool) {
     try {
-      await initNeonTable(sql);
-      const rows = await sql`SELECT * FROM saved_profiles ORDER BY created_at DESC;`;
-      return { source: 'neon', profiles: rows };
+      await initMysqlTable(pool);
+      const [rows] = await pool.query('SELECT * FROM saved_profiles ORDER BY id DESC');
+      return { source: 'mysql', profiles: rows };
     } catch (err) {
-      console.error('Neon query error, falling back to local storage:', err.message);
+      console.warn('MySQL getAllProfiles error, falling back to Neon/Local:', err.message);
     }
   }
 
-  // Fallback to local storage
+  // B. Try Neon PostgreSQL
+  const neonSql = getNeonSql();
+  if (neonSql) {
+    try {
+      await initNeonTable(neonSql);
+      const rows = await neonSql`SELECT * FROM saved_profiles ORDER BY created_at DESC;`;
+      return { source: 'neon', profiles: rows };
+    } catch (err) {
+      console.warn('Neon query error, falling back to local:', err.message);
+    }
+  }
+
+  // C. Fallback to Local JSON
   ensureLocalStorage();
   try {
     const data = fs.readFileSync(LOCAL_STORAGE_FILE, 'utf-8');
@@ -103,14 +183,57 @@ async function getAllProfiles() {
   }
 }
 
-// 2. Save a profile
+// 2. Save a Profile
 async function saveProfile(profile) {
-  const sql = getSql();
   const profileName = (profile.profile_name || 'Verified Persona').trim();
-  if (sql) {
+
+  // A. Try MySQL
+  const pool = getMysqlPool();
+  if (pool) {
     try {
-      await initNeonTable(sql);
-      const rows = await sql`
+      await initMysqlTable(pool);
+      const [result] = await pool.query(`
+        INSERT INTO saved_profiles (
+          profile_name, phone_number, phone_formatted, carrier, line_type, region,
+          local_format, timezone, country, ip_address, location,
+          fraud_score, trust_score, connection_type, threat_flags,
+          dob, age, headline, post_bio
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        profileName,
+        profile.phone_number || '',
+        profile.phone_formatted || '',
+        profile.carrier || 'Unknown',
+        profile.line_type || 'MOBILE',
+        profile.region || '',
+        profile.local_format || '',
+        profile.timezone || '',
+        profile.country || 'United States',
+        profile.ip_address || '',
+        profile.location || '',
+        parseInt(profile.fraud_score, 10) || 0,
+        parseInt(profile.trust_score, 10) || 100,
+        profile.connection_type || 'Standard',
+        profile.threat_flags || '',
+        profile.dob || '',
+        parseInt(profile.age, 10) || 0,
+        profile.headline || '',
+        profile.post_bio || ''
+      ]);
+
+      const [newRow] = await pool.query('SELECT * FROM saved_profiles WHERE id = ?', [result.insertId]);
+      return { success: true, source: 'mysql', profile: newRow[0] || { id: result.insertId, ...profile } };
+    } catch (err) {
+      console.warn('MySQL insert error, falling back:', err.message);
+    }
+  }
+
+  // B. Try Neon PostgreSQL
+  const neonSql = getNeonSql();
+  if (neonSql) {
+    try {
+      await initNeonTable(neonSql);
+      const rows = await neonSql`
         INSERT INTO saved_profiles (
           profile_name, phone_number, phone_formatted, carrier, line_type, region,
           local_format, timezone, country, ip_address, location,
@@ -128,12 +251,12 @@ async function saveProfile(profile) {
           ${profile.country || 'United States'},
           ${profile.ip_address || ''},
           ${profile.location || ''},
-          ${parseInt(profile.fraud_score) || 0},
-          ${parseInt(profile.trust_score) || 100},
+          ${parseInt(profile.fraud_score, 10) || 0},
+          ${parseInt(profile.trust_score, 10) || 100},
           ${profile.connection_type || 'Standard'},
           ${profile.threat_flags || ''},
           ${profile.dob || ''},
-          ${parseInt(profile.age) || 0},
+          ${parseInt(profile.age, 10) || 0},
           ${profile.headline || ''},
           ${profile.post_bio || ''}
         )
@@ -141,11 +264,11 @@ async function saveProfile(profile) {
       `;
       return { success: true, source: 'neon', profile: rows[0] };
     } catch (err) {
-      console.error('Neon insert error, using local fallback:', err.message);
+      console.warn('Neon insert error, using local fallback:', err.message);
     }
   }
 
-  // Local fallback
+  // C. Fallback Local JSON
   ensureLocalStorage();
   try {
     const data = fs.readFileSync(LOCAL_STORAGE_FILE, 'utf-8');
@@ -164,20 +287,30 @@ async function saveProfile(profile) {
   }
 }
 
-// 3. Delete a profile
+// 3. Delete Profile
 async function deleteProfile(id) {
-  const sql = getSql();
-  if (sql) {
+  const pool = getMysqlPool();
+  if (pool) {
     try {
-      await initNeonTable(sql);
-      await sql`DELETE FROM saved_profiles WHERE id = ${parseInt(id)};`;
-      return { success: true, source: 'neon' };
+      await initMysqlTable(pool);
+      await pool.query('DELETE FROM saved_profiles WHERE id = ?', [parseInt(id, 10)]);
+      return { success: true, source: 'mysql' };
     } catch (err) {
-      console.error('Neon delete error:', err.message);
+      console.warn('MySQL delete error:', err.message);
     }
   }
 
-  // Local fallback
+  const neonSql = getNeonSql();
+  if (neonSql) {
+    try {
+      await initNeonTable(neonSql);
+      await neonSql`DELETE FROM saved_profiles WHERE id = ${parseInt(id, 10)};`;
+      return { success: true, source: 'neon' };
+    } catch (err) {
+      console.warn('Neon delete error:', err.message);
+    }
+  }
+
   ensureLocalStorage();
   try {
     const data = fs.readFileSync(LOCAL_STORAGE_FILE, 'utf-8');

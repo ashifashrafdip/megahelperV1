@@ -29,9 +29,13 @@ module.exports = async function handler(req, res) {
       }
 
       const saved = await saveProfile(body);
+      const msg = saved.source === 'mysql' 
+        ? 'Saved to cPanel MySQL Database!' 
+        : (saved.source === 'neon' ? 'Saved to Neon PostgreSQL!' : 'Saved to local storage');
+
       return res.status(200).json({
         success: true,
-        message: saved.source === 'neon' ? 'Saved to Neon PostgreSQL!' : 'Saved to local storage (Neon DB URL not configured)',
+        message: msg,
         source: saved.source,
         profile: saved.profile
       });

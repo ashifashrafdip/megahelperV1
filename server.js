@@ -1,7 +1,7 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const http = require('http');
 const fs = require('fs');
-const path = require('path');
 const url = require('url');
 
 const PORT = process.env.PORT || 3000;
@@ -68,6 +68,7 @@ const server = http.createServer(async (req, res) => {
     return adaptHandler(profilesHandler)(req, res);
   }
 
+
   // 2. Serve Static Files (only whitelisted public assets; never .env, api source, data, etc.)
   const PUBLIC_FILES = ['index.html', 'icon.svg', 'manifest.json', 'sw.js', 'app_icon.ico'];
   const requested = decodeURIComponent(pathname || '/').replace(/^\/+/, '');
@@ -101,6 +102,6 @@ server.listen(PORT, () => {
   console.log('='.repeat(65));
   console.log(`📱 USA Phone Validator Web App running at:`);
   console.log(`👉 Local:     http://localhost:${PORT}`);
-  console.log(`⚡ Neon DB:   ${process.env.DATABASE_URL ? 'Connected (Neon Postgres)' : 'Local File Fallback (Set DATABASE_URL in .env)'}`);
+  console.log(`⚡ Database:  ${process.env.MYSQL_DATABASE ? 'cPanel MariaDB/MySQL (' + process.env.MYSQL_DATABASE + ')' : (process.env.DATABASE_URL ? 'Neon Postgres' : 'Local File Fallback')}`);
   console.log('='.repeat(65));
 });
