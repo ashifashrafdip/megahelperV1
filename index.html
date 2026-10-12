@@ -343,7 +343,7 @@
               <input 
                 id="inputHeadline" 
                 type="text" 
-                value="☕ Coffee first, adventure after? 🚀" 
+                value="Coffee first, then let's see where the night goes." 
                 class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-800 focus:outline-none focus:border-brand-600 focus:bg-white transition-colors"
               />
               <button 
@@ -357,7 +357,7 @@
             </div>
           </div>
 
-          <!-- Post / Bio (Balanced 5-line height, Large font) -->
+          <!-- Post / Bio (Balanced multi-line height with clean spacing) -->
           <div>
             <div class="flex items-center justify-between mb-1">
               <label class="text-xs font-bold text-slate-700">Post / Bio:</label>
@@ -365,9 +365,13 @@
             </div>
             <textarea 
               id="txtPostBio" 
-              rows="4" 
-              class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-800 focus:outline-none focus:border-brand-600 focus:bg-white transition-colors leading-relaxed resize-none font-normal"
-            >Always down for a spontaneous road trip or just finding the best local espresso spot. Looking for someone witty, kind, and ready for some genuine laughs. Let's skip the small talk and plan something fun.</textarea>
+              rows="6" 
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-800 focus:outline-none focus:border-brand-600 focus:bg-white transition-colors leading-relaxed whitespace-pre-wrap resize-y font-normal"
+            >Always down for an impromptu drive with the windows down, good playlists, or hunting down the best hidden espresso spot in town.
+
+Looking for someone with great banter, positive energy, and zero drama.
+
+If you're ready to skip the endless small talk and make an actual plan, say hi.</textarea>
           </div>
 
           <!-- Bottom Actions: AI Generate Post & Save Profile with Custom Name -->
@@ -708,10 +712,30 @@
     const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
     const PRESET_BIOS = [
-      { headline: "☕ Coffee first, adventure after? 🚀", post: "Always down for a spontaneous road trip or hunting down the best local bakery in town. Looking for someone witty, kind, and ready for some genuine laughs. Let's skip the small talk and plan something fun. ✨ vibes 🥂" },
-      { headline: "🌙 Expect the unexpected... ✨", post: "Life is full of surprises, and tonight might be one of them. I’m looking for someone who isn't afraid to step out of their comfort zone. If you're spontaneous, fun, and ready for a fresh connection, send me a message and let's see where the night takes us. 🌌🔥" },
-      { headline: "🔥 Real connection, no games.", post: "If you're tired of the 'talking stage' and want to actually meet someone fun, let’s talk. I value authenticity, good energy, and a great sense of humor. If that’s you, let’s make a plan. 🥂😉" },
-      { headline: "🧘 Keep it chill, keep it real. 🍷", post: "Just looking to de-stress and enjoy some genuine company. If you're someone who loves good music, deep talks, and a relaxed vibe, you're the one I'm looking for. No pressure, just good company. ✨😊" }
+      {
+        headline: "Coffee first, then let's see where the night goes.",
+        post: "Always down for an impromptu drive with the windows down, good playlists, or hunting down the best hidden espresso spot in town.\n\nLooking for someone with great banter, positive energy, and zero drama.\n\nIf you're ready to skip the endless small talk and make an actual plan, say hi."
+      },
+      {
+        headline: "Real chemistry, zero games.",
+        post: "Life is busy enough—downtime should be easy, refreshing, and genuine.\n\nI value authenticity, a sharp sense of humor, and people who actually follow through on plans.\n\nTell me your favorite secret spot in the city and let's go from there."
+      },
+      {
+        headline: "Two truths and a lie: your turn.",
+        post: "Big fan of impromptu weekend escapes, lively dinner conversations, and rooftop views that aren't on Google Maps.\n\nSeeking someone ambitious, grounded, and ready for real laughter.\n\nDrop me a message with your best travel story and let's see if we click."
+      },
+      {
+        headline: "Keep it chill, keep it real.",
+        post: "Just looking to de-stress and enjoy some genuine, high-vibe company after a long week.\n\nIf you're someone who appreciates great playlists, deep late-night talks, and a relaxed atmosphere, we'll get along well.\n\nNo pressure, no complicated expectations—just good company."
+      },
+      {
+        headline: "Sunday brunch energy with Friday night spontaneity.",
+        post: "Always up for an adventurous road trip or trying the newest restaurant everyone is buzzing about.\n\nSeeking a partner-in-crime who brings good conversation, contagious laughter, and zero pretense.\n\nLet's grab a drink and see where things naturally lead."
+      },
+      {
+        headline: "Tell me your favorite secret spot in town.",
+        post: "Whether it's a quiet cliffside view, a dive bar with a great jukebox, or a hidden vinyl shop, I want to know about it.\n\nLooking for an authentic connection where we can just be ourselves and have fun.\n\nIf you're spontaneous and ready to meet up, message me."
+      }
     ];
 
     // State Variables
@@ -1069,20 +1093,22 @@
           if (res.headline) document.getElementById('inputHeadline').value = res.headline;
           if (res.post) document.getElementById('txtPostBio').value = res.post;
           if (!silent) showToast('Persona generated.');
+        } else {
+          actionRandomPreset(silent);
         }
       } catch (e) {
-        actionRandomPreset();
+        actionRandomPreset(silent);
       } finally {
         btn.innerHTML = 'AI Generate Post';
         btn.disabled = false;
       }
     }
 
-    function actionRandomPreset() {
+    function actionRandomPreset(silent = false) {
       const item = PRESET_BIOS[Math.floor(Math.random() * PRESET_BIOS.length)];
       document.getElementById('inputHeadline').value = item.headline;
       document.getElementById('txtPostBio').value = item.post;
-      showToast('Preset loaded.');
+      if (!silent) showToast('Persona loaded.');
     }
 
     // ================= UNIVERSAL CLIPBOARD HELPER =================
