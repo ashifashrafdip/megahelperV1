@@ -68,12 +68,10 @@ const server = http.createServer(async (req, res) => {
     return adaptHandler(profilesHandler)(req, res);
   }
 
-  // 2. Serve Static Files
-  let filePath = path.join(__dirname, pathname === '/' ? 'index.html' : pathname);
-  
-  if (!fs.existsSync(filePath)) {
-    filePath = path.join(__dirname, 'index.html');
-  }
+  // 2. Serve Static Files (only whitelisted public assets; never .env, api source, data, etc.)
+  const PUBLIC_FILES = ['index.html', 'icon.svg', 'manifest.json', 'sw.js', 'app_icon.ico'];
+  const requested = decodeURIComponent(pathname || '/').replace(/^\/+/, '');
+  let filePath = path.join(__dirname, PUBLIC_FILES.includes(requested) ? requested : 'index.html');
 
   const ext = path.extname(filePath).toLowerCase();
   const mimeTypes = {
