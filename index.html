@@ -104,9 +104,43 @@
     </div>
   </header>
 
+  <!-- ================= SUB-NAV TABS BAR ================= -->
+  <nav class="bg-white border-b border-slate-200/90 sticky top-[65px] z-20 shadow-2xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between overflow-x-auto custom-scroll">
+      <div class="flex items-center gap-1.5 sm:gap-2 py-2">
+        <button id="navTabPhone" onclick="switchMainTab('phone')" class="main-tab-btn inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer bg-brand-600 text-white shadow-xs">
+          <span>📱</span>
+          <span>Phone & Persona Studio</span>
+        </button>
+        <button id="navTabAutomation" onclick="switchMainTab('automation')" class="main-tab-btn inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+          <span>⚡</span>
+          <span>MegaPersonals Automation</span>
+          <span id="navAutomationBadge" class="hidden px-2 py-0.5 rounded-full text-[10px] font-black bg-brand-100 text-brand-700">RUNNING</span>
+        </button>
+        <button id="navTabOutlook" onclick="switchMainTab('outlook')" class="main-tab-btn inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+          <span>📧</span>
+          <span>Outlook Auto-OTP & Links</span>
+          <span id="navOtpBadge" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-black bg-emerald-100 text-emerald-700">LIVE</span>
+        </button>
+      </div>
+
+      <!-- Quick status indicator on the right -->
+      <div class="hidden md:flex items-center gap-3 text-xs">
+        <div class="flex items-center gap-1.5 text-slate-500 font-medium">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>MoreLogin CDP:</span>
+          <span id="headerCdpStatus" class="font-mono font-bold text-slate-800">127.0.0.1:51793</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
   <!-- ================= MAIN 2-COLUMN DASHBOARD ================= -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- ================= VIEW 1: PHONE VALIDATOR & PERSONA STUDIO ================= -->
+    <div id="viewPhone" class="main-view block">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
       <!-- ================= LEFT COLUMN: PROXY & SCAMALYTICS (5 COLS) ================= -->
       <div class="lg:col-span-5 flex flex-col gap-5">
@@ -375,7 +409,7 @@ If you're ready to skip the endless small talk and make an actual plan, say hi.<
           </div>
 
           <!-- Bottom Actions: AI Generate Post & Save Profile with Custom Name -->
-          <div class="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div class="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <button 
               onclick="actionAiGenerate()" 
               id="btnAiGen" 
@@ -391,12 +425,345 @@ If you're ready to skip the endless small talk and make an actual plan, say hi.<
             >
               Save Profile
             </button>
+            <button 
+              onclick="pushCurrentToMegaAutomation()" 
+              id="btnPushToAutomation" 
+              class="w-full py-3 px-3 rounded-xl bg-slate-900 hover:bg-black active:bg-slate-800 text-white text-xs sm:text-sm font-black shadow-md shadow-slate-900/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-brand-500/40"
+              title="Push this phone, age, city & persona to MegaPersonals Automation Hub"
+            >
+              <span>⚡</span> Send to Mega
+            </button>
           </div>
 
         </div>
 
       </div>
 
+    </div>
+
+    <!-- ================= VIEW 2: MEGAPERSONALS AUTOMATION HUB ================= -->
+    <div id="viewAutomation" class="main-view hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Column: Settings (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-5">
+
+          <!-- Card 1: Target Profile & Ad Setup -->
+          <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-xs font-extrabold tracking-wider text-brand-600 uppercase flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-brand-600"></span> 1. Target Profile & Ad Setup
+              </h2>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200">Autonomous</span>
+            </div>
+
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Target City:</label>
+                  <input id="autoCity" type="text" value="Northern Virginia" placeholder="e.g. Dallas, TX" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-600" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Target Age:</label>
+                  <input id="autoAge" type="number" value="26" min="18" max="65" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-600" />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Verified Mobile SIM Phone:</label>
+                <div class="relative">
+                  <input id="autoPhone" type="text" value="703-597-8214" placeholder="e.g. 214-251-3525" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-bold text-brand-600 focus:outline-none focus:border-brand-600" />
+                  <span class="absolute right-3 top-2 text-[10px] font-bold text-emerald-600">Bypass Active</span>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Post Headline:</label>
+                <input id="autoHeadline" type="text" value="Sunday brunch energy with Friday night spontaneity." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-600" />
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Post Bio / Body:</label>
+                <textarea id="autoBody" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-600 resize-none">Always up for an adventurous road trip or trying the newest restaurant. Let's grab a drink and see where things naturally lead.</textarea>
+              </div>
+
+              <!-- Media Upload Indicator -->
+              <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">📸</span>
+                  <div>
+                    <div class="text-[11px] font-bold text-slate-800">Post Photo Image</div>
+                    <div class="text-[10px] text-slate-500">default_post_image.jpg (Preloaded)</div>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">Ready</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: MoreLogin Browser & Account Setup -->
+          <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-xs font-extrabold tracking-wider text-brand-600 uppercase flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-brand-600"></span> 2. Browser & Account Setup
+              </h2>
+              <span id="autoBrowserBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">CDP Ready</span>
+            </div>
+
+            <div class="space-y-3 mb-4">
+              <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">MoreLogin Port:</label>
+                  <input id="autoCdpPort" type="number" value="51793" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-brand-600" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Password:</label>
+                  <input id="autoPassword" type="text" value="Xbwbivcgya52300@" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-brand-600" />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Outlook Registration Email:</label>
+                <input id="autoEmail" type="email" value="legendrobinsongews@outlook.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-brand-600" />
+              </div>
+            </div>
+
+            <!-- Start / Stop Action Buttons -->
+            <div class="grid grid-cols-2 gap-2.5">
+              <button 
+                id="btnStartAutomation" 
+                onclick="startMegaAutomation()" 
+                class="py-3 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-extrabold text-xs shadow-md shadow-brand-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <span>🚀</span> Start Pipeline
+              </button>
+              <button 
+                id="btnStopAutomation" 
+                onclick="stopMegaAutomation()" 
+                class="py-3 px-4 rounded-xl border border-slate-200 bg-white hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 text-slate-600 font-bold text-xs transition-all cursor-pointer"
+              >
+                <span>⏹</span> Stop
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Stepper, Captcha & Console Logs (7 cols) -->
+        <div class="lg:col-span-7 flex flex-col gap-5">
+
+          <!-- Card 3: 5-Stage Step Progression Stepper -->
+          <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-xs font-extrabold tracking-wider text-brand-600 uppercase flex items-center gap-2">
+                <span id="autoPulseDot" class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+                <span>3. Live Pipeline Stepper</span>
+              </h2>
+              <span id="lblAutoStepStatus" class="text-xs font-bold text-slate-500 font-mono">Idle</span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-100 rounded-full h-2 mb-4 overflow-hidden">
+              <div id="autoProgressBar" class="bg-brand-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+
+            <!-- 5-Step Visual Timeline -->
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-[11px] font-bold">
+              <div id="stepPillReg" class="p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 transition-all">
+                <div class="text-[9px] uppercase tracking-wider text-slate-400">Step 1</div>
+                <div>Registration</div>
+              </div>
+              <div id="stepPillOtp" class="p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 transition-all">
+                <div class="text-[9px] uppercase tracking-wider text-slate-400">Step 2</div>
+                <div>Email OTP</div>
+              </div>
+              <div id="stepPillAgree" class="p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 transition-all">
+                <div class="text-[9px] uppercase tracking-wider text-slate-400">Step 3</div>
+                <div>Poster Agree</div>
+              </div>
+              <div id="stepPillPost" class="p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 transition-all">
+                <div class="text-[9px] uppercase tracking-wider text-slate-400">Step 4</div>
+                <div>Post & Image</div>
+              </div>
+              <div id="stepPillAgeSmart" class="p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 transition-all col-span-2 sm:col-span-1">
+                <div class="text-[9px] uppercase tracking-wider text-slate-400">Step 5</div>
+                <div>AgeSmart KYC</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: Interactive Captcha Solver (Only visible when needed) -->
+          <div id="captchaPromptCard" class="hidden bg-amber-50 rounded-2xl border-2 border-amber-400 p-5 shadow-md">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-amber-500 animate-ping"></span>
+                <h3 class="text-xs font-black uppercase tracking-wider text-amber-900">Captcha Verification Needed</h3>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-200 text-amber-900">Input Required</span>
+            </div>
+            <p class="text-xs text-amber-800 mb-3">Please look at the captcha image below and enter the 4 characters:</p>
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+              <div class="bg-white p-2 rounded-xl border border-amber-300 shrink-0">
+                <img id="imgLiveCaptcha" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40'%3E%3Crect width='100%25' height='100%25' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='11' fill='%2394a3b8'%3EWaiting Captcha%3C/text%3E%3C/svg%3E" alt="Captcha Image" class="h-12 w-auto object-contain rounded" />
+              </div>
+              <input id="inputManualCaptcha" type="text" maxlength="6" placeholder="4 CHARS" class="w-full sm:w-36 uppercase font-mono text-center font-black tracking-widest text-lg bg-white border border-amber-300 rounded-xl px-3 py-2.5 outline-none focus:border-brand-600" />
+              <button onclick="submitCaptchaSolution()" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs shadow-md transition-all cursor-pointer whitespace-nowrap">Submit Captcha</button>
+            </div>
+          </div>
+
+          <!-- Card 5: AgeSmart KYC Verification Gateway Link -->
+          <div id="cardAgeSmartLink" class="hidden bg-gradient-to-r from-emerald-50 via-teal-50 to-white rounded-2xl border-2 border-emerald-400 p-5 shadow-md">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-xs font-black uppercase text-emerald-800">AgeSmart Verification Link Ready!</span>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">100% Success</span>
+            </div>
+            <p class="text-xs text-emerald-900 mb-3">Post submitted successfully. KYC verification token created:</p>
+            <div class="p-3 bg-white rounded-xl border border-emerald-200 font-mono text-xs font-bold text-slate-800 break-all mb-3 select-all" id="lblAgeSmartUrlText">
+              https://agesmart.eu/terms/...
+            </div>
+            <div class="flex items-center gap-2">
+              <a id="btnOpenAgeSmart" href="#" target="_blank" class="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold text-center shadow-xs transition-all">
+                🌐 Open AgeSmart Link
+              </a>
+              <button onclick="copyAgeSmartUrl()" class="py-2.5 px-4 rounded-xl border border-emerald-300 bg-white hover:bg-emerald-50 text-emerald-800 text-xs font-extrabold transition-all cursor-pointer">
+                📋 Copy Link
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 6: Live Automation Execution Terminal -->
+          <div class="bg-slate-900 rounded-2xl border border-slate-800 p-4 shadow-sm flex flex-col flex-1 min-h-[300px]">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+              <div class="flex items-center gap-2 text-xs font-mono font-bold text-slate-300">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <span class="ml-1 text-slate-400">megapersonals-engine.log</span>
+              </div>
+              <button onclick="clearAutomationLogs()" class="text-[10px] font-mono text-slate-400 hover:text-white px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 transition-colors">Clear</button>
+            </div>
+            <div id="terminalLogs" class="flex-1 overflow-y-auto font-mono text-xs text-emerald-400 space-y-1 custom-scroll max-h-[350px] leading-relaxed">
+              <div class="text-slate-500">// Engine initialized. Ready to launch.</div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ================= VIEW 3: OUTLOOK AUTO-OTP & LINKS ================= -->
+    <div id="viewOutlook" class="main-view hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Column: Active Account & Hero OTP PIN (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-5">
+
+          <!-- Card 1: Active Outlook Account -->
+          <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-xs font-extrabold tracking-wider text-brand-600 uppercase flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-brand-600"></span> 1. Connected Outlook Mailbox
+              </h2>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">OAuth2 Active</span>
+            </div>
+
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 mb-3 text-xs space-y-2">
+              <div>
+                <span class="text-slate-400 block text-[11px]">Email Address:</span>
+                <span id="lblOutlookEmail" class="font-bold font-mono text-slate-800">legendrobinsongews@outlook.com</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[11px]">Microsoft Graph API:</span>
+                <span class="font-semibold text-emerald-700">Authenticated (Refresh Token Persistent)</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button onclick="fetchOutlookMessages()" class="flex-1 py-2.5 px-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-extrabold shadow-sm transition-all cursor-pointer">
+                🔄 Fetch Messages
+              </button>
+              <button onclick="openOutlookConfigModal()" class="py-2.5 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer">
+                ⚙ Update Token
+              </button>
+            </div>
+
+            <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+              <label class="flex items-center gap-2 text-slate-600 cursor-pointer font-medium text-[11px]">
+                <input id="chkAutoPollOutlook" type="checkbox" checked onchange="toggleOutlookAutoPoll()" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500" />
+                <span>Auto-refresh every 4s</span>
+              </label>
+              <span id="lblOutlookPollStatus" class="text-[10px] text-slate-400 font-mono">Live</span>
+            </div>
+          </div>
+
+          <!-- Card 2: HERO LATEST OTP PIN -->
+          <div class="bg-gradient-to-r from-brand-50/90 via-amber-50/30 to-white rounded-2xl p-5 border border-brand-200/90 shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-xs font-black uppercase text-emerald-700">Latest Extracted OTP PIN</span>
+              </div>
+              <button onclick="copyOutlookOtp()" class="px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-extrabold shadow-2xs transition-all cursor-pointer">
+                Copy PIN
+              </button>
+            </div>
+
+            <div class="my-2">
+              <div id="lblOutlookHeroOtp" class="text-4xl sm:text-5xl font-black text-brand-600 font-mono tracking-wider">----</div>
+            </div>
+            <div id="lblOutlookOtpSubtitle" class="text-[11px] text-slate-500 font-medium truncate">Awaiting incoming verification email...</div>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Links & Messages Table (7 cols) -->
+        <div class="lg:col-span-7 flex flex-col gap-5">
+
+          <!-- Card 3: Hero Verification Link Card -->
+          <div id="cardOutlookLink" class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+              <h2 class="text-xs font-extrabold tracking-wider text-brand-600 uppercase flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-brand-600"></span> 2. Latest Actionable Verification Link
+              </h2>
+              <span id="badgeLinkFound" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">None detected</span>
+            </div>
+            <p class="text-xs text-slate-500 mb-3">Actionable links extracted from recent emails (DataImpulse, AgeSmart, MegaPersonals):</p>
+            
+            <div id="boxOutlookHeroLink" class="p-3 bg-slate-50 rounded-xl border border-slate-200 font-mono text-xs font-semibold text-slate-800 break-all mb-3 select-all">
+              (No verification link detected yet)
+            </div>
+
+            <div class="flex items-center gap-2">
+              <a id="btnOpenOutlookLink" href="#" target="_blank" class="flex-1 py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-extrabold text-center shadow-xs transition-all pointer-events-none opacity-50">
+                🌐 Open Link in New Tab
+              </a>
+              <button id="btnCopyOutlookLink" onclick="copyOutlookLink()" disabled class="py-2.5 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-extrabold transition-all cursor-pointer opacity-50">
+                📋 Copy Link
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 4: Recent Mailbox Messages Table -->
+          <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm flex flex-col flex-1">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+              <h2 class="text-xs font-extrabold tracking-wider text-brand-600 uppercase flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-brand-600"></span> 3. Recent Mailbox Activity
+              </h2>
+              <span id="lblMessagesCount" class="text-xs font-bold text-slate-500">0 messages</span>
+            </div>
+
+            <div id="outlookMessagesList" class="space-y-2.5 overflow-y-auto max-h-[420px] custom-scroll">
+              <div class="text-center py-8 text-xs text-slate-400">Loading inbox messages...</div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
     </div>
   </main>
 
@@ -563,6 +930,30 @@ If you're ready to skip the endless small talk and make an actual plan, say hi.<
             >
               Confirm & Save
             </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= OUTLOOK CONFIG MODAL ================= -->
+  <div id="outlookConfigModal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="outlookModalTitle" role="dialog" aria-modal="true">
+    <div onclick="closeOutlookConfigModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-300"></div>
+    <div class="flex min-h-full items-center justify-center p-4 text-center">
+      <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all w-full max-w-lg p-5 sm:p-6 border border-slate-100">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+          <h3 class="text-base font-black text-slate-900" id="outlookModalTitle">Update Outlook Account</h3>
+          <button type="button" onclick="closeOutlookConfigModal()" class="text-slate-400 hover:text-slate-700 text-sm font-bold p-1">✕</button>
+        </div>
+        <form onsubmit="event.preventDefault(); submitOutlookCredentials();" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Paste Raw Credentials / Format:</label>
+            <textarea id="inputRawOutlook" rows="3" placeholder="email|pass|refresh_token|client_id" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-mono text-slate-800 focus:outline-none focus:border-brand-600 resize-none"></textarea>
+            <p class="text-[11px] text-slate-400 mt-1">Supports standard pipe format (email|pass|refresh_token|client_id) or single refresh token.</p>
+          </div>
+          <div class="flex items-center justify-end gap-2 pt-2">
+            <button type="button" onclick="closeOutlookConfigModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold">Cancel</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-black shadow-xs">Save & Connect</button>
           </div>
         </form>
       </div>
@@ -1633,6 +2024,448 @@ ${bio}
         closeSaveModal();
       }
     });
+
+    
+    // ================= MAIN TAB SWITCHING =================
+    let currentMainTab = 'phone';
+    function switchMainTab(tab) {
+      currentMainTab = tab;
+      
+      const tabPhone = document.getElementById('navTabPhone');
+      const tabAuto = document.getElementById('navTabAutomation');
+      const tabOutlook = document.getElementById('navTabOutlook');
+
+      const viewPhone = document.getElementById('viewPhone');
+      const viewAuto = document.getElementById('viewAutomation');
+      const viewOutlook = document.getElementById('viewOutlook');
+
+      // Reset all buttons
+      [tabPhone, tabAuto, tabOutlook].forEach(btn => {
+        if (!btn) return;
+        btn.className = 'main-tab-btn inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-slate-100';
+      });
+
+      // Hide all views
+      if (viewPhone) viewPhone.classList.add('hidden');
+      if (viewAuto) viewAuto.classList.add('hidden');
+      if (viewOutlook) viewOutlook.classList.add('hidden');
+
+      if (tab === 'phone') {
+        if (tabPhone) tabPhone.className = 'main-tab-btn inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer bg-brand-600 text-white shadow-xs';
+        if (viewPhone) viewPhone.classList.remove('hidden');
+      } else if (tab === 'automation') {
+        if (tabAuto) tabAuto.className = 'main-tab-btn inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer bg-brand-600 text-white shadow-xs';
+        if (viewAuto) viewAuto.classList.remove('hidden');
+        pollAutomationStatus();
+      } else if (tab === 'outlook') {
+        if (tabOutlook) tabOutlook.className = 'main-tab-btn inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer bg-brand-600 text-white shadow-xs';
+        if (viewOutlook) viewOutlook.classList.remove('hidden');
+        fetchOutlookMessages();
+      }
+    }
+
+    // ================= PUSH TO MEGA AUTOMATION =================
+    function pushCurrentToMegaAutomation() {
+      let rawNum = document.getElementById('lblWinnerNumber')?.textContent || '214 251 3525';
+      let cleanPhone = rawNum.replace('+1', '').replace(/\D/g, '');
+      let formattedPhone = cleanPhone.length === 10 ? cleanPhone.slice(0, 3) + '-' + cleanPhone.slice(3, 6) + '-' + cleanPhone.slice(6) : cleanPhone;
+      
+      let geoText = document.getElementById('lblDetGeo')?.textContent || '';
+      let city = 'Northern Virginia';
+      if (geoText) {
+        let parts = geoText.split(',');
+        if (parts[0]) city = parts[0].trim();
+      }
+
+      let ageVal = document.getElementById('lblCalculatedAge')?.textContent || '26';
+      let headline = document.getElementById('inputHeadline')?.value || 'Sunday brunch energy with Friday night spontaneity.';
+      let bio = document.getElementById('txtPostBio')?.value || 'Always up for an adventurous road trip. Let\'s grab a drink and see where things naturally lead.';
+
+      if (document.getElementById('autoPhone')) document.getElementById('autoPhone').value = formattedPhone;
+      if (document.getElementById('autoCity')) document.getElementById('autoCity').value = city;
+      if (document.getElementById('autoAge')) document.getElementById('autoAge').value = ageVal;
+      if (document.getElementById('autoHeadline')) document.getElementById('autoHeadline').value = headline;
+      if (document.getElementById('autoBody')) document.getElementById('autoBody').value = bio;
+
+      fetch('/api/automation/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: cleanPhone,
+          city: city,
+          age: Number(ageVal),
+          headline: headline,
+          body: bio
+        })
+      }).catch(() => {});
+
+      switchMainTab('automation');
+      showToast('⚡ Phone, Age & Persona pushed to Mega Automation Hub!');
+    }
+
+    // ================= MEGAPERSONALS AUTOMATION CONTROL =================
+    let autoPollTimer = null;
+
+    async function startMegaAutomation() {
+      const btn = document.getElementById('btnStartAutomation');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="inline-block animate-spin mr-1">⚙</span> Starting...';
+      }
+
+      const payload = {
+        phone: document.getElementById('autoPhone')?.value || '703-597-8214',
+        city: document.getElementById('autoCity')?.value || 'Northern Virginia',
+        age: Number(document.getElementById('autoAge')?.value) || 26,
+        headline: document.getElementById('autoHeadline')?.value || '',
+        body: document.getElementById('autoBody')?.value || '',
+        email: document.getElementById('autoEmail')?.value || 'legendrobinsongews@outlook.com',
+        password: document.getElementById('autoPassword')?.value || 'Xbwbivcgya52300@',
+        cdp_port: Number(document.getElementById('autoCdpPort')?.value) || 51793
+      };
+
+      try {
+        const res = await fetch('/api/automation/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('🚀 Automation Pipeline Launched!');
+          startAutomationPolling();
+        } else {
+          showToast('❌ Error: ' + (data.message || 'Failed to start'));
+        }
+      } catch (e) {
+        showToast('❌ Network error: ' + e.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>🚀</span> Start Pipeline';
+        }
+      }
+    }
+
+    async function stopMegaAutomation() {
+      try {
+        const res = await fetch('/api/automation/stop', { method: 'POST' });
+        const data = await res.json();
+        showToast('Automation stopped');
+        pollAutomationStatus();
+      } catch (e) {
+        showToast('Error stopping automation: ' + e.message);
+      }
+    }
+
+    async function submitCaptchaSolution() {
+      const code = document.getElementById('inputManualCaptcha')?.value?.trim().toUpperCase();
+      if (!code) {
+        showToast('Please enter the 4 captcha characters');
+        return;
+      }
+      try {
+        const res = await fetch('/api/automation/captcha', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code })
+        });
+        const data = await res.json();
+        showToast('Captcha submitted: ' + code);
+        document.getElementById('captchaPromptCard')?.classList.add('hidden');
+        if (document.getElementById('inputManualCaptcha')) document.getElementById('inputManualCaptcha').value = '';
+      } catch (e) {
+        showToast('Error submitting captcha: ' + e.message);
+      }
+    }
+
+    function startAutomationPolling() {
+      if (autoPollTimer) clearInterval(autoPollTimer);
+      pollAutomationStatus();
+      autoPollTimer = setInterval(pollAutomationStatus, 1500);
+    }
+
+    async function pollAutomationStatus() {
+      try {
+        const res = await fetch('/api/automation/status');
+        const data = await res.json();
+        if (!data.success || !data.state) return;
+
+        const s = data.state;
+
+        const pBar = document.getElementById('autoProgressBar');
+        if (pBar) pBar.style.width = (s.progress_percent || 0) + '%';
+
+        const lblStep = document.getElementById('lblAutoStepStatus');
+        const pulse = document.getElementById('autoPulseDot');
+        if (lblStep) lblStep.textContent = (s.step || 'Idle').toUpperCase();
+
+        if (pulse) {
+          pulse.className = s.running 
+            ? 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse'
+            : (s.completed ? 'w-2.5 h-2.5 rounded-full bg-emerald-600' : 'w-2.5 h-2.5 rounded-full bg-slate-400');
+        }
+
+        const navBadge = document.getElementById('navAutomationBadge');
+        if (navBadge) {
+          if (s.running) {
+            navBadge.classList.remove('hidden');
+          } else {
+            navBadge.classList.add('hidden');
+          }
+        }
+
+        const stepMap = {
+          'stepPillReg': ['registration'],
+          'stepPillOtp': ['email_otp'],
+          'stepPillAgree': ['posters_agreement'],
+          'stepPillPost': ['post_stage1', 'post_stage2'],
+          'stepPillAgeSmart': ['pending_images', 'direct_verification', 'agesmart_terms', 'agesmart_dob', 'agesmart_kyc']
+        };
+
+        const activeStep = s.step || '';
+        Object.entries(stepMap).forEach(([pillId, steps]) => {
+          const pill = document.getElementById(pillId);
+          if (!pill) return;
+          if (steps.includes(activeStep)) {
+            pill.className = 'p-2 rounded-xl bg-brand-600 text-white font-extrabold shadow-xs transition-all border border-brand-600';
+          } else if (s.completed) {
+            pill.className = 'p-2 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 font-bold transition-all';
+          } else {
+            pill.className = 'p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 transition-all';
+          }
+        });
+
+        const captchaCard = document.getElementById('captchaPromptCard');
+        if (captchaCard) {
+          if (s.captcha_needed) {
+            captchaCard.classList.remove('hidden');
+            const img = document.getElementById('imgLiveCaptcha');
+            if (img) img.src = '/api/captcha-image?t=' + Date.now();
+          } else {
+            captchaCard.classList.add('hidden');
+          }
+        }
+
+        const ageSmartCard = document.getElementById('cardAgeSmartLink');
+        if (ageSmartCard) {
+          if (s.agesmart_url) {
+            ageSmartCard.classList.remove('hidden');
+            const lbl = document.getElementById('lblAgeSmartUrlText');
+            if (lbl) lbl.textContent = s.agesmart_url;
+            const btn = document.getElementById('btnOpenAgeSmart');
+            if (btn) btn.href = s.agesmart_url;
+          }
+        }
+
+        const term = document.getElementById('terminalLogs');
+        if (term && Array.isArray(s.logs)) {
+          term.innerHTML = s.logs.map(logLine => {
+            let color = 'text-emerald-400';
+            if (logLine.includes('❌') || logLine.includes('error')) color = 'text-rose-400 font-bold';
+            else if (logLine.includes('-->') || logLine.includes('Step')) color = 'text-amber-300 font-bold';
+            else if (logLine.includes('🎉') || logLine.includes('SUCCESS')) color = 'text-emerald-300 font-extrabold';
+            return `<div class="${color}">${logLine}</div>`;
+          }).join('');
+          term.scrollTop = term.scrollHeight;
+        }
+
+      } catch (e) {
+        console.error('Error polling automation status:', e);
+      }
+    }
+
+    function copyAgeSmartUrl() {
+      const url = document.getElementById('lblAgeSmartUrlText')?.textContent?.trim();
+      if (url && url.startsWith('http')) {
+        navigator.clipboard.writeText(url);
+        showToast('📋 AgeSmart URL copied to clipboard!');
+      }
+    }
+
+    function clearAutomationLogs() {
+      const term = document.getElementById('terminalLogs');
+      if (term) term.innerHTML = '<div class="text-slate-500">// Logs cleared</div>';
+    }
+
+    // ================= OUTLOOK AUTO-OTP & LINKS HUB =================
+    let outlookPollTimer = null;
+
+    async function fetchOutlookMessages() {
+      const pollStatus = document.getElementById('lblOutlookPollStatus');
+      if (pollStatus) pollStatus.textContent = 'Fetching...';
+
+      try {
+        const res = await fetch('/api/outlook');
+        const data = await res.json();
+        if (!data.success) {
+          if (pollStatus) pollStatus.textContent = 'Error: ' + (data.message || 'Offline');
+          return;
+        }
+
+        if (pollStatus) pollStatus.textContent = 'Live (' + new Date().toLocaleTimeString() + ')';
+
+        if (document.getElementById('lblOutlookEmail')) {
+          document.getElementById('lblOutlookEmail').textContent = data.email || 'legendrobinsongews@outlook.com';
+        }
+
+        const heroOtp = document.getElementById('lblOutlookHeroOtp');
+        const navOtp = document.getElementById('navOtpBadge');
+        if (data.latest_otp) {
+          if (heroOtp) heroOtp.textContent = data.latest_otp;
+          if (navOtp) {
+            navOtp.textContent = 'OTP: ' + data.latest_otp;
+            navOtp.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono font-black bg-brand-500 text-white animate-pulse';
+          }
+          if (document.getElementById('lblOutlookOtpSubtitle')) {
+            const firstMsg = data.messages?.[0];
+            document.getElementById('lblOutlookOtpSubtitle').textContent = firstMsg ? `Found in: "${firstMsg.subject}" from ${firstMsg.sender}` : 'Latest verified OTP code';
+          }
+        }
+
+        const boxLink = document.getElementById('boxOutlookHeroLink');
+        const btnOpen = document.getElementById('btnOpenOutlookLink');
+        const btnCopy = document.getElementById('btnCopyOutlookLink');
+        const badge = document.getElementById('badgeLinkFound');
+
+        if (data.latest_link) {
+          if (boxLink) boxLink.textContent = data.latest_link;
+          if (btnOpen) {
+            btnOpen.href = data.latest_link;
+            btnOpen.classList.remove('pointer-events-none', 'opacity-50');
+          }
+          if (btnCopy) {
+            btnCopy.disabled = false;
+            btnCopy.classList.remove('opacity-50');
+          }
+          if (badge) {
+            badge.textContent = 'Active Link Found';
+            badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800';
+          }
+        }
+
+        const msgList = document.getElementById('outlookMessagesList');
+        const lblCount = document.getElementById('lblMessagesCount');
+        if (lblCount && Array.isArray(data.messages)) lblCount.textContent = data.messages.length + ' messages';
+
+        if (msgList && Array.isArray(data.messages)) {
+          if (data.messages.length === 0) {
+            msgList.innerHTML = '<div class="text-center py-6 text-xs text-slate-400">No emails found in inbox.</div>';
+          } else {
+            msgList.innerHTML = data.messages.map(m => {
+              const otpBadge = m.otp 
+                ? `<span class="px-2 py-0.5 rounded font-mono font-black text-xs bg-brand-600 text-white shadow-2xs">PIN: ${m.otp}</span>`
+                : '';
+              const linkCount = m.links && m.links.length > 0 
+                ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600">${m.links.length} link(s)</span>`
+                : '';
+
+              return `
+                <div class="bg-slate-50 hover:bg-slate-100/80 p-3 rounded-xl border border-slate-200/80 text-xs space-y-1 transition-colors">
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="font-extrabold text-slate-900 truncate flex items-center gap-1.5">
+                      <span>${m.senderName || m.sender}</span>
+                      <span class="text-[10px] font-mono text-slate-400 font-normal">&lt;${m.sender}&gt;</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                      ${otpBadge}
+                      ${linkCount}
+                    </div>
+                  </div>
+                  <div class="font-bold text-slate-800 truncate">${m.subject}</div>
+                  <div class="text-[11px] text-slate-500 line-clamp-2">${m.preview || ''}</div>
+                  <div class="text-[10px] text-slate-400 pt-1 font-mono">${m.receivedAt ? new Date(m.receivedAt).toLocaleString() : ''}</div>
+                </div>
+              `;
+            }).join('');
+          }
+        }
+
+      } catch (e) {
+        console.error('Error fetching Outlook messages:', e);
+      }
+    }
+
+    function copyOutlookOtp() {
+      const code = document.getElementById('lblOutlookHeroOtp')?.textContent?.trim();
+      if (code && code !== '----') {
+        navigator.clipboard.writeText(code);
+        showToast('📋 OTP PIN copied: ' + code);
+      } else {
+        showToast('No OTP code available yet');
+      }
+    }
+
+    function copyOutlookLink() {
+      const link = document.getElementById('boxOutlookHeroLink')?.textContent?.trim();
+      if (link && link.startsWith('http')) {
+        navigator.clipboard.writeText(link);
+        showToast('📋 Verification link copied!');
+      }
+    }
+
+    function openOutlookConfigModal() {
+      document.getElementById('outlookConfigModal')?.classList.remove('hidden');
+    }
+
+    function closeOutlookConfigModal() {
+      document.getElementById('outlookConfigModal')?.classList.add('hidden');
+    }
+
+    async function submitOutlookCredentials() {
+      const raw = document.getElementById('inputRawOutlook')?.value?.trim();
+      if (!raw) return;
+
+      try {
+        const res = await fetch('/api/outlook', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ raw })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Outlook credentials saved!');
+          closeOutlookConfigModal();
+          fetchOutlookMessages();
+        } else {
+          showToast('Error: ' + data.message);
+        }
+      } catch (e) {
+        showToast('Failed to save: ' + e.message);
+      }
+    }
+
+    function toggleOutlookAutoPoll() {
+      const chk = document.getElementById('chkAutoPollOutlook');
+      if (chk && chk.checked) {
+        if (!outlookPollTimer) outlookPollTimer = setInterval(fetchOutlookMessages, 4000);
+      } else {
+        if (outlookPollTimer) {
+          clearInterval(outlookPollTimer);
+          outlookPollTimer = null;
+        }
+      }
+    }
+
+    // Initialize background polling on startup
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchOutlookMessages();
+      toggleOutlookAutoPoll();
+      fetch('/api/automation/profile')
+        .then(r => r.json())
+        .then(d => {
+          if (d.success && d.profile) {
+            const p = d.profile;
+            if (document.getElementById('autoPhone') && p.phone) document.getElementById('autoPhone').value = p.phone;
+            if (document.getElementById('autoCity') && p.city) document.getElementById('autoCity').value = p.city;
+            if (document.getElementById('autoAge') && p.age) document.getElementById('autoAge').value = p.age;
+            if (document.getElementById('autoHeadline') && p.headline) document.getElementById('autoHeadline').value = p.headline;
+            if (document.getElementById('autoBody') && p.body) document.getElementById('autoBody').value = p.body;
+          }
+        })
+        .catch(() => {});
+    });
+
 
     // 9. Toast Notification Helper
     let toastTimer = null;

@@ -1,3 +1,4 @@
+require('dotenv').config();
 const crypto = require('crypto');
 
 const SESSION_COOKIE = 'usa_phone_access';

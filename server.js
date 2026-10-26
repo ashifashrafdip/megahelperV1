@@ -12,6 +12,8 @@ const verifyHandler = require('./api/verify');
 const geminiHandler = require('./api/gemini');
 const profilesHandler = require('./api/profiles');
 const authHandler = require('./api/auth');
+const outlookHandler = require('./api/outlook');
+const automationHandler = require('./api/automation');
 
 // Helper to mock Vercel req/res for standard Node http
 function adaptHandler(handler) {
@@ -67,6 +69,22 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/profiles') {
     return adaptHandler(profilesHandler)(req, res);
   }
+  if (pathname.startsWith('/api/outlook')) {
+    return adaptHandler(outlookHandler)(req, res);
+  }
+  if (pathname.startsWith('/api/automation')) {
+    return adaptHandler(automationHandler)(req, res);
+  }
+  if (pathname === '/api/captcha-image') {
+    const captchaPath = path.join(__dirname, 'data', 'latest_captcha.png');
+    if (fs.existsSync(captchaPath)) {
+      res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'no-cache, no-store' });
+      return fs.createReadStream(captchaPath).pipe(res);
+    } else {
+      res.writeHead(200, { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'no-cache, no-store' });
+      return res.end('<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40"><rect width="100%" height="100%" fill="#f1f5f9"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="monospace" font-size="11" fill="#94a3b8">Waiting Captcha</text></svg>');
+    }
+  }
 
 
   // 2. Serve Static Files (only whitelisted public assets; never .env, api source, data, etc.)
@@ -100,8 +118,9 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log('='.repeat(65));
-  console.log(`📱 USA Phone Validator Web App running at:`);
+  console.log(`📱 USA Phone Validator & Mega Automation Hub running at:`);
   console.log(`👉 Local:     http://localhost:${PORT}`);
   console.log(`⚡ Database:  ${process.env.MYSQL_DATABASE ? 'cPanel MariaDB/MySQL (' + process.env.MYSQL_DATABASE + ')' : (process.env.DATABASE_URL ? 'Neon Postgres' : 'Local File Fallback')}`);
+  console.log(`🚀 Automation: Active on /api/automation & /api/outlook`);
   console.log('='.repeat(65));
 });
